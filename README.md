@@ -31,3 +31,6 @@ This is MUCH faster than flashing. It is recommended to use it during develeopme
 
 NOTE: `--rts/--dtr` are only needed if you have these lines connected from your USB-Serial to
 the ESP8266 for buttonless flashing.
+
+# ITS A CLOCK!!!
+(https://github.com/morganrallen/sudo-clock/row/master/extra/clock.jpg)
