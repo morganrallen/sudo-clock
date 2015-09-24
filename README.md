@@ -33,4 +33,4 @@ NOTE: `--rts/--dtr` are only needed if you have these lines connected from your 
 the ESP8266 for buttonless flashing.
 
 # ITS A CLOCK!!!
-(https://github.com/morganrallen/sudo-clock/row/master/extra/clock.jpg)
+![It's a clock!](https://github.com/morganrallen/sudo-clock/row/master/extra/clock.jpg)
