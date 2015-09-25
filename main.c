@@ -19,6 +19,8 @@
 #include "max7219.h"
 #include "display.h"
 
+#include "udp.h"
+
 static os_timer_t network_timer;
 
 void ICACHE_FLASH_ATTR user_rf_pre_init() {
@@ -74,6 +76,7 @@ void ICACHE_FLASH_ATTR ShowIP() {
 	uart0_send(msg);
 }
 
+/*
 void ICACHE_FLASH_ATTR ShowInfo() {
 	char msg[50];
 
@@ -95,6 +98,7 @@ void ICACHE_FLASH_ATTR ShowInfo() {
     os_sprintf(msg, "SPI Flash Size: %d\r\n", (1 << ((spi_flash_get_id() >> 16) & 0xff)));
     uart0_send(msg);
 }
+*/
 
 void ICACHE_FLASH_ATTR Switch() {
 	char msg[50];
@@ -185,7 +189,9 @@ void ICACHE_FLASH_ATTR ProcessCommand(char* str) {
 	} else if (!strcmp(str, "ip")) {
 		ShowIP();
 	} else if (!strcmp(str, "info")) {
-		ShowInfo();
+		//ShowInfo();
+	} else if (!strcmp(str, "arm")) {
+    toggle_animate();
 	} else if (!strcmp(str, "time")) {
 	} else if (strstr(str, "set") != NULL) {
     SetLed(str);
@@ -210,5 +216,5 @@ void ICACHE_FLASH_ATTR user_init(void) {
   uart0_send("time init done\n\n");
 
 	uart0_send("type \"help\" and press <enter> for help...\r\n");
-
+  udp_init();
 }
