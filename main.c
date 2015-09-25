@@ -171,7 +171,7 @@ void ICACHE_FLASH_ATTR ProcessCommand(char* str) {
 		uart0_send("  switch - switch to the other rom and reboot\r\n");
 		uart0_send("  ota - perform ota update, switch rom and reboot\r\n");
 		uart0_send("  info - show esp8266 info\r\n");
-		uart0_send("  derp, NOT IMPLEMENTED\r\n");
+		uart0_send("  time - get time from ds1307\r\n");
 		uart0_send("\r\n");
 	} else if (!strcmp(str, "connect")) {
 		wifi_config_station();
@@ -186,6 +186,8 @@ void ICACHE_FLASH_ATTR ProcessCommand(char* str) {
 		ShowIP();
 	} else if (!strcmp(str, "info")) {
 		ShowInfo();
+	} else if (!strcmp(str, "time")) {
+    ntp_get_time();
 	} else if (strstr(str, "set") != NULL) {
     SetLed(str);
 	}
