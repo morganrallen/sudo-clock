@@ -4,8 +4,8 @@
 #
 
 # use wifi settings from environment or hard code them here
-WIFI_SSID ?= "sudomesh"
-WIFI_PWD  ?= ""
+WIFI_SSID ?= "peoplesopen.net"
+WIFI_PWD ?= ""
 
 SDK_BASE      ?= ../../esp_iot_sdk_v1.4.0/
 SDK_LIBDIR  = lib
