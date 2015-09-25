@@ -187,7 +187,6 @@ void ICACHE_FLASH_ATTR ProcessCommand(char* str) {
 	} else if (!strcmp(str, "info")) {
 		ShowInfo();
 	} else if (!strcmp(str, "time")) {
-    ntp_get_time();
 	} else if (strstr(str, "set") != NULL) {
     SetLed(str);
 	}
