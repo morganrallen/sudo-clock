@@ -17,7 +17,7 @@
 #include "uart.h"
 
 #include "max7219.h"
-#include "time.h"
+#include "display.h"
 
 static os_timer_t network_timer;
 
