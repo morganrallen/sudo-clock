@@ -27,10 +27,24 @@ static void ICACHE_FLASH_ATTR network_received(void *arg, char *data, unsigned s
 static void ICACHE_FLASH_ATTR network_udp_start(void) ;
 static void ICACHE_FLASH_ATTR timeout_func(void *arg);
 static void ICACHE_FLASH_ATTR init_check_timer();
+void udp_init();
 
-void udp_init(void)
+static os_timer_t timer_reset_time;
+
+void update_time() {
+  udp_init();
+  uart0_send("updating time...\n");
+}
+
+void udp_init()
 {  
   init_check_timer();
+
+  os_timer_disarm(&timer_reset_time);
+
+  //Setup and arm timer
+  os_timer_setfn(&timer_reset_time, (os_timer_func_t *)update_time, 0);
+  os_timer_arm(&timer_reset_time, 1000 * 60 * 60, 1);
 }
 
 static void ICACHE_FLASH_ATTR init_check_timer() {
