@@ -142,29 +142,6 @@ static void ICACHE_FLASH_ATTR OtaUpdate() {
 	}
 }
 
-char *args[255];
-
-void SetLed(char* cmdStr) {
-  char cmd[32];
-  char arg1[10] = "";
-  int len;
-  char *ptr;
-
-  ptr = strtok(cmdStr, " ");
-  strcpy(cmd, ptr);
-
-  ptr = strtok(NULL, " ");
-  if(ptr) {
-    strcpy(arg1, ptr);
-  }
-
-  len = strlen(cmd);
-
-  char msg[50];
-  os_sprintf(msg, "CMD: %s (len: %d): %s\n", cmd, len, arg1);
-  uart0_send(msg);
-}
-
 void ICACHE_FLASH_ATTR ProcessCommand(char* str) {
 	if (!strcmp(str, "help")) {
 		uart0_send("available commands\r\n");
@@ -192,11 +169,10 @@ void ICACHE_FLASH_ATTR ProcessCommand(char* str) {
 		//ShowInfo();
 	} else if (!strcmp(str, "arm")) {
     toggle_animate();
-	} else if (!strcmp(str, "time")) {
-	} else if (strstr(str, "set") != NULL) {
-    SetLed(str);
 	}
 }
+
+static os_timer_t update_time_timer;
 
 void ICACHE_FLASH_ATTR user_init(void) {
 
