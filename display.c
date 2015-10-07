@@ -103,7 +103,7 @@ void draw_digit(uint8_t r, uint8_t c, int* digit) {
   }
 }
 
-bool animate = true;
+bool animate = false;
 
 int gen_row(int row) {
   if(animate) {
@@ -158,14 +158,29 @@ void clear() {
   }
 }
 
+uint32 last;
+uint32 accum = 0;
+
 void tick() {
-  epochish += 1;
+  uint32 now;
+  now = system_get_time() + accum;
+  /*
+  char msg[22];
+  os_sprintf(msg, "%d - %d = %d mod %d div %d\n", now, last, now - last, ((now - last) % 100000), ((now - last) / 1000000));
+  uart0_send(msg);
+  */
+
+  epochish += ((now - last) / 1000000);
 
   if(animate) {
     clear();
   }
 
   display_time(epochish);
+
+  accum += ((now - last) % 100000);
+
+  last = now;
 }
 
 void toggle_animate() {
@@ -174,6 +189,8 @@ void toggle_animate() {
 }
 
 void arm_timer() {
+  last = system_get_time();
+
   os_timer_disarm(&ticker);
   os_timer_setfn(&ticker, tick, NULL);
   os_timer_arm(&ticker, 1000, 1);
