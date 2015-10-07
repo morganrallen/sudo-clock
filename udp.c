@@ -44,7 +44,7 @@ void udp_init()
 
   //Setup and arm timer
   os_timer_setfn(&timer_reset_time, (os_timer_func_t *)update_time, 0);
-  os_timer_arm(&timer_reset_time, 1000 * 60 * 60, 1);
+  os_timer_arm(&timer_reset_time, 1000 * 60, 1);
 }
 
 static void ICACHE_FLASH_ATTR init_check_timer() {
