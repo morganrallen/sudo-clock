@@ -7,13 +7,13 @@
 WIFI_SSID ?= "sudomesh"
 WIFI_PWD ?= ""
 
-SDK_BASE      ?= ../../esp_iot_sdk_v1.4.0/
+SDK_BASE      ?= ../ESP8266/esp_iot_sdk_v1.4.0/
 SDK_LIBDIR  = lib
 SDK_INCDIR  = include
 
 # esptool2 assume to be in adjacent dir
 # can be commented out if available in $PATH
-ESPTOOL2     ?= ../esptool2/esptool2
+ESPTOOL2     ?= esptool2
 FW_SECTS      = .text .data .rodata
 FW_USER_ARGS  = -quiet -bin -boot2
 
