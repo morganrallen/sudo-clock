@@ -32,7 +32,12 @@ void udp_init();
 static os_timer_t timer_reset_time;
 
 void update_time() {
-  udp_init();
+  ntp_t ntp;
+
+  os_memset(&ntp, 0, sizeof(ntp_t));
+	ntp.options = 0b00100011; // leap = 0, version = 4, mode = 3 (client)
+
+  espconn_sent(pUdpServer, (uint8*)&ntp, sizeof(ntp_t));
   uart0_send("updating time...\n");
 }
 
@@ -100,7 +105,7 @@ static void ICACHE_FLASH_ATTR network_udp_start(void)
 
 static void ICACHE_FLASH_ATTR network_received(void *arg, char *data, unsigned short len) 
 {
-  uart0_send("derp");
+  //uart0_send("derp");
   ntp_t *ntp;
   time_t timestamp;
 	ntp = (ntp_t*)data;
@@ -110,7 +115,7 @@ static void ICACHE_FLASH_ATTR network_received(void *arg, char *data, unsigned s
 	timestamp -= 2208988800UL;
   timestamp -= 60 * 60 * 7;
   char msg[200];
-  os_sprintf(msg, "time: %d", timestamp);
+  os_sprintf(msg, "time: %d\n\r", timestamp);
   uart0_send(msg);
   uart0_send(timestamp);
   display_set_time(timestamp);
