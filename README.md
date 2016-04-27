@@ -6,6 +6,13 @@ This uses [raburton/esp8266 rboot](https://github.com/raburton/esp8266/tree/mast
 this handle Wifi and OTA updates automagically. It also requires the ESP8266 IoT SDK, after following
 it's build directions you should have the paths needed for the next build step.
 
+# wiring
+
+| ESP | MATRIX |
+|-----|--------|
+| 13  |   DIN  |
+| 12  |   CS   |
+| 14  |   CLK  |
 
 # build
 ```
