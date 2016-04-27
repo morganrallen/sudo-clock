@@ -1,46 +1,74 @@
+# Makefile for ESP8266 projects
 #
-# Makefile for rBoot sample project
-# https://github.com/raburton/esp8266
+# Thanks to:
+# - zarya
+# - Jeroen Domburg (Sprite_tm)
+# - Christian Klippel (mamalala)
+# - Tommie Gannert (tommie)
 #
+# Changelog:
+# - 2014-10-06: Changed the variables to include the header file directory
+# - 2014-10-06: Added global var for the Xtensa tool root
+# - 2014-11-23: Updated for SDK 0.9.3
+# - 2014-12-25: Replaced esptool by esptool.py
 
-# use wifi settings from environment or hard code them here
+# Output directors to store intermediate compiled files
+# relative to the project directory
+BUILD_BASE	= build
+FW_BASE		= firmware
+ESPFS_POS = 0x18000
+ESPFS_SIZE = 0x28000
+
+THISDIR:=$(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+
+# base directory for the compiler
+XTENSA_TOOLS_ROOT ?= /opt/Espressif/crosstool-NG/builds/xtensa-lx106-elf/bin
+
+# base directory of the ESP8266 SDK package, absolute
+SDK_BASE	?= /opt/Espressif/ESP8266_SDK
+
+# esptool.py path and port
+ESPTOOL		?= esptool.py
+ESPPORT		?= /dev/ttyUSB0
+ESPBAUD		?= 230400
+
+ESPTOOL_OPTS=--port $(ESPPORT) --baud $(ESPBAUD)
+
+# name for the target project
+TARGET		= app
+
+# which modules (subdirectories) of the project to include in compiling
+MODULES		= user
+EXTRA_INCDIR	= include
+
+# libraries used in this project, mainly provided by the SDK
+LIBS		= c gcc hal pp phy net80211 lwip wpa main crypto pwm m
+
+# compiler flags using during compilation of source files
+CFLAGS		= -Os -g -O2 -Wpointer-arith -Wundef -Wl,-EL -fno-inline-functions -nostdlib -mlongcalls -mtext-section-literals  -D__ets__ -DICACHE_FLASH
+
+# linker flags used to generate the main object file
+LDFLAGS		= -nostdlib -Wl,--no-check-sections -u call_user_start -Wl,-static
+
+# linker script used for the above linkier step
+LD_SCRIPT	= eagle.app.v6.ld
+
+# various paths from the SDK used in this project
+SDK_LIBDIR	= lib
+SDK_LDDIR	= ld
+SDK_INCDIR	= include include/json
+
+# we create two different files for uploading into the flash
+# these are the names and options to generate them
+FW_FILE_1_ADDR	= 0x00000
+FW_FILE_2_ADDR	= 0x40000
+
+# select which tools to use as compiler, librarian and linker
+CC		:= $(XTENSA_TOOLS_ROOT)/xtensa-lx106-elf-gcc
+AR		:= $(XTENSA_TOOLS_ROOT)/xtensa-lx106-elf-ar
+LD		:= $(XTENSA_TOOLS_ROOT)/xtensa-lx106-elf-gcc
+
 WIFI_SSID ?= "sudomesh"
-WIFI_PWD ?= ""
-
-SDK_BASE      ?= ../ESP8266/esp_iot_sdk_v1.4.0/
-SDK_LIBDIR  = lib
-SDK_INCDIR  = include
-
-# esptool2 assume to be in adjacent dir
-# can be commented out if available in $PATH
-ESPTOOL2     ?= esptool2
-FW_SECTS      = .text .data .rodata
-FW_USER_ARGS  = -quiet -bin -boot2
-
-# XTENSA_BINDIR can be blank if already in $PATH
-# XTENSA_BINDIR ?= /opt/esp-open-sdk/xtensa-lx106-elf/bin
-
-ifndef XTENSA_BINDIR
-CC := xtensa-lx106-elf-gcc
-LD := xtensa-lx106-elf-gcc
-else
-CC := $(addprefix $(XTENSA_BINDIR)/,xtensa-lx106-elf-gcc)
-LD := $(addprefix $(XTENSA_BINDIR)/,xtensa-lx106-elf-gcc)
-endif
-
-BUILD_DIR = build
-FIRMW_DIR = firmware
-
-SDK_LIBDIR := $(addprefix $(SDK_BASE)/,$(SDK_LIBDIR))
-SDK_INCDIR := $(addprefix -I$(SDK_BASE)/,$(SDK_INCDIR))
-
-LIBS    = c gcc hal phy net80211 lwip wpa main pp m
-CFLAGS  = -Os -g -O2 -Wpointer-arith -Wundef -Wno-implicit -Werror -Wl,-EL -fno-inline-functions -nostdlib -mlongcalls  -mtext-section-literals  -D__ets__ -DICACHE_FLASH
-LDFLAGS = -nostdlib -Wl,--no-check-sections -u call_user_start -Wl,-static
-
-SRC		:= $(wildcard *.c)
-OBJ		:= $(patsubst %.c,$(BUILD_DIR)/%.o,$(SRC))
-LIBS		:= $(addprefix -l,$(LIBS))
 
 ifneq ($(WIFI_SSID), "")
 	CFLAGS += -DWIFI_SSID=\"$(WIFI_SSID)\"
@@ -49,33 +77,85 @@ ifneq ($(WIFI_PWD), "")
 	CFLAGS += -DWIFI_PWD=\"$(WIFI_PWD)\"
 endif
 
-.SECONDARY:
-.PHONY: all clean
+CFLAGS += -DESPFS_POS=$(ESPFS_POS) -DESPFS_SIZE=$(ESPFS_SIZE)
 
-C_FILES = $(wildcard *.c)
-O_FILES = $(patsubst %.c,$(BUILD_DIR)/%.o,$(C_FILES))
+####
+#### no user configurable options below here
+####
+SRC_DIR		:= $(MODULES)
+BUILD_DIR	:= $(addprefix $(BUILD_BASE)/,$(MODULES))
 
-all: $(BUILD_DIR) $(FIRMW_DIR) $(FIRMW_DIR)/rom0.bin $(FIRMW_DIR)/rom1.bin
+SDK_LIBDIR	:= $(addprefix $(SDK_BASE)/,$(SDK_LIBDIR))
+SDK_INCDIR	:= $(addprefix -I$(SDK_BASE)/,$(SDK_INCDIR))
 
-$(BUILD_DIR)/%.o: %.c %.h
-	@echo "CC $<"
-	@$(CC) -I. $(SDK_INCDIR) $(CFLAGS) -o $@ -c $<
+SRC		:= $(foreach sdir,$(SRC_DIR),$(wildcard $(sdir)/*.c))
+OBJ		:= $(patsubst %.c,$(BUILD_BASE)/%.o,$(SRC))
+OBJ		+= $(patsubst %.S,$(BUILD_BASE)/%.o,$(ASMSRC))
+LIBS		:= $(addprefix -l,$(LIBS))
+APP_AR		:= $(addprefix $(BUILD_BASE)/,$(TARGET)_app.a)
+TARGET_OUT	:= $(addprefix $(BUILD_BASE)/,$(TARGET).out)
 
-$(BUILD_DIR)/%.elf: $(O_FILES)
-	@echo "LD $(notdir $@)"
-	@$(LD) -L$(SDK_LIBDIR) -T$(notdir $(basename $@)).ld $(LDFLAGS) -Wl,--start-group $(LIBS) $^ -Wl,--end-group -o $@
+LD_SCRIPT	:= $(addprefix -T$(SDK_BASE)/$(SDK_LDDIR)/,$(LD_SCRIPT))
 
-$(FIRMW_DIR)/%.bin: $(BUILD_DIR)/%.elf
-	@echo "FW $(notdir $@)"
-	@$(ESPTOOL2) $(FW_USER_ARGS) $^ $@ $(FW_SECTS)
+INCDIR	:= $(addprefix -I,$(SRC_DIR))
+EXTRA_INCDIR	:= $(addprefix -I,$(EXTRA_INCDIR))
+MODULE_INCDIR	:= $(addsuffix /include,$(INCDIR))
+
+FW_FILE_1	:= $(addprefix $(FW_BASE)/,$(FW_FILE_1_ADDR).bin)
+FW_FILE_2	:= $(addprefix $(FW_BASE)/,$(FW_FILE_2_ADDR).bin)
+
+V ?= $(VERBOSE)
+ifeq ("$(V)","1")
+Q :=
+vecho := @true
+else
+Q := @
+vecho := @echo
+endif
+
+vpath %.c $(SRC_DIR)
+
+define compile-objects
+$1/%.o: %.c
+	$(vecho) "CC $$<"
+	$(Q) $(CC) $(INCDIR) -I./user $(MODULE_INCDIR) $(EXTRA_INCDIR) $(SDK_INCDIR) $(CFLAGS) -c $$< -o $$@
+endef
+
+.PHONY: all checkdirs flash clean
+
+all: checkdirs $(TARGET_OUT) $(FW_FILE_1) $(FW_FILE_2)
+
+$(APP_AR): $(OBJ)
+	$(vecho) "AR $@"
+	$(Q) $(AR) cru $@ $(OBJ)
+
+$(FW_BASE)/%.bin: $(TARGET_OUT) | $(FW_BASE)
+	$(vecho) "FW $(FW_BASE)/"
+	$(Q) $(ESPTOOL) elf2image -o $(FW_BASE)/ $(TARGET_OUT)
+
+$(TARGET_OUT): $(APP_AR)
+	$(vecho) "LD $@"
+	$(Q) $(LD) -L$(SDK_LIBDIR) $(LD_SCRIPT) $(LDFLAGS) -Wl,--start-group $(LIBS) $(APP_AR) -Wl,--end-group -o $@
+
+$(APP_AR): $(OBJ)
+	$(vecho) "AR $@"
+	$(Q) $(AR) cru $@ $^
+
+checkdirs: $(BUILD_DIR) $(FW_BASE)
 
 $(BUILD_DIR):
-	@mkdir -p $@
+	$(Q) mkdir -p $@
 
-$(FIRMW_DIR):
-	@mkdir -p $@
+$(FW_BASE):
+	$(Q) mkdir -p $@
+
+flash: $(FW_FILE_1) $(FW_FILE_2)
+	$(ESPTOOL) --port $(ESPPORT) --baud $(ESPBAUD) write_flash $(FW_FILE_1_ADDR) $(FW_FILE_1) $(FW_FILE_2_ADDR) $(FW_FILE_2)
+
+monitor: flash
+	miniterm $(ESPPORT) 74800
 
 clean:
-	@echo "RM $(BUILD_DIR) $(FIRMW_DIR)"
-	@rm -rf $(BUILD_DIR)
-	@rm -rf $(FIRMW_DIR)
+	$(Q) rm -rf $(FW_BASE) $(BUILD_BASE)
+
+$(foreach bdir,$(BUILD_DIR),$(eval $(call compile-objects,$(bdir))))
