@@ -71,10 +71,10 @@ LD		:= $(XTENSA_TOOLS_ROOT)/xtensa-lx106-elf-gcc
 WIFI_SSID ?= "peoplesopen.net"
 
 ifneq ($(WIFI_SSID), "")
-	CFLAGS += -DWIFI_SSID=\"$(WIFI_SSID)\"
+	CFLAGS += -DWIFI_SSID="\"$(WIFI_SSID)\""
 endif
 ifneq ($(WIFI_PWD), "")
-	CFLAGS += -DWIFI_PWD=\"$(WIFI_PWD)\"
+	CFLAGS += -DWIFI_PWD="\"$(WIFI_PWD)\""
 endif
 
 CFLAGS += -DESPFS_POS=$(ESPFS_POS) -DESPFS_SIZE=$(ESPFS_SIZE)
