@@ -21,6 +21,7 @@ uint8 ntp_server[] = {131, 107, 13, 100}; // microsoft
 //uint8 ntp_server[] = {192, 168, 4, 229}; // microsoft
 
 static struct espconn* pUdpServer;
+static struct espconn* pTalkServer;
 static os_timer_t timer_check_connection;
 
 static void ICACHE_FLASH_ATTR network_received(void *arg, char *data, unsigned short len) ;
@@ -80,6 +81,12 @@ static void ICACHE_FLASH_ATTR timeout_func(void *arg)
   network_udp_start();
 }
 
+static void ICACHE_FLASH_ATTR talk_network_received(void *arg, char *data, unsigned short len) {
+  char msg[256];
+  os_sprintf(msg, "%s\n", data);
+  uart0_send(msg);
+}
+
 static void ICACHE_FLASH_ATTR network_udp_start(void) 
 {   
   ntp_t ntp;
@@ -88,7 +95,7 @@ static void ICACHE_FLASH_ATTR network_udp_start(void)
   pUdpServer->type=ESPCONN_UDP;
   pUdpServer->state=ESPCONN_NONE;
   pUdpServer->proto.udp= (esp_udp *)os_zalloc(sizeof(esp_udp));
-  pUdpServer->proto.udp->local_port = espconn_port();                          // Set local port to 2222
+  pUdpServer->proto.udp->local_port = espconn_port();                          // Set local port to random
   pUdpServer->proto.udp->remote_port = 123;                         // Set remote port
   os_memcpy(pUdpServer->proto.udp->remote_ip, ntp_server, 4);
 
@@ -100,6 +107,20 @@ static void ICACHE_FLASH_ATTR network_udp_start(void)
     espconn_regist_recvcb(pUdpServer, network_received);
     uart0_send("UDP OK\n\r");
     espconn_sent(pUdpServer, (uint8*)&ntp, sizeof(ntp_t));
+  }
+
+  // setup talk server
+  pTalkServer = (struct espconn *)os_zalloc(sizeof(struct espconn));
+  pTalkServer->type=ESPCONN_UDP;
+  pTalkServer->state=ESPCONN_NONE;
+  pTalkServer->proto.udp= (esp_udp *)os_zalloc(sizeof(esp_udp));
+  pTalkServer->proto.udp->local_port = 1234;
+  pTalkServer->proto.udp->remote_port = 0;
+
+  if(espconn_create(pTalkServer) == 0)
+  {
+    uart0_send("Registered talk callback\n");
+    espconn_regist_recvcb(pTalkServer, talk_network_received);
   }
 }
 
