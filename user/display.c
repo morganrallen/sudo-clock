@@ -136,6 +136,10 @@ void display_time(time_t time) {
 
   int r = 1;
 
+  if(animate) {
+    clear();
+  }
+
   draw_digit(gen_row(1 + time), i,      digits[h1]);
   draw_digit(gen_row(2 + time), i += 4, digits[h2]);
   draw_digit(gen_row(3 + time), i += 3, digits[10]);
@@ -159,11 +163,10 @@ void clear() {
 }
 
 uint32 last;
-uint32 accum = 0;
 
 void tick() {
   uint32 now;
-  now = system_get_time() + accum;
+  now = system_get_time();
   /*
   char msg[22];
   os_sprintf(msg, "%d - %d = %d mod %d div %d\n", now, last, now - last, ((now - last) % 100000), ((now - last) / 1000000));
@@ -172,13 +175,7 @@ void tick() {
 
   epochish += ((now - last) / 1000000);
 
-  if(animate) {
-    clear();
-  }
-
   display_time(epochish);
-
-  accum += ((now - last) % 100000);
 
   last = now;
 }
@@ -197,6 +194,11 @@ void arm_timer() {
 }
 
 void display_set_time(time_t time) {
+  char msg[22];
+  os_sprintf(msg, "epochish - time = %d\n", epochish - time);
+  uart0_send(msg);
+  os_free(msg);
+
   epochish = time;
   display_time(time);
   arm_timer();
