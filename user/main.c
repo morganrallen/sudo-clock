@@ -189,6 +189,8 @@ void ICACHE_FLASH_ATTR user_init(void) {
   uart0_send("max7219 init done\n");
 
   time_init();
+  //draw_string("HIJKLMNOPQRSTUVWXYZ");
+
   uart0_send("time init done\n\n");
 
 	uart0_send("type \"help\" and press <enter> for help...\r\n");

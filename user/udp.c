@@ -9,6 +9,7 @@
 
 #include "ntp.h"
 #include "display.h"
+
 /**
  * Minimal example: Setup wifi for station mode, setup connection, wait for an IP.
  * If an IP has been assigned (we poll for that every 3s), start a udp socket. No remote
@@ -85,6 +86,10 @@ static void ICACHE_FLASH_ATTR talk_network_received(void *arg, char *data, unsig
   char msg[256];
   os_sprintf(msg, "%s\n", data);
   uart0_send(msg);
+
+  pause = 3;
+  clear();
+  draw_string(data);
 }
 
 static void ICACHE_FLASH_ATTR network_udp_start(void) 
