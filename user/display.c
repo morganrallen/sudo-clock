@@ -128,6 +128,8 @@ void display_time(time_t time) {
   draw_digit(gen_row(8 + time), i += 4, digits[s2]);
 }
 
+uint32 last;
+
 void tick() {
   uint32 now;
   now = system_get_time();
