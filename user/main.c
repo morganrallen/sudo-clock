@@ -1,9 +1,8 @@
-//////////////////////////////////////////////////
-// rBoot sample project.
-// Copyright 2015 Richard A Burton
-// richardaburton@gmail.com
-// See license.txt for license terms.
-//////////////////////////////////////////////////
+/*
+ * sudo-clock
+ * Author: Morgan 'ARR!' Allen <morganrallen@gmail.com>
+ * Description: Clock built for sudoroom.org
+ */
 
 #include <c_types.h>
 #include <osapi.h>
