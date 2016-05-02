@@ -13,7 +13,6 @@
 
 #include "main.h"
 #include "user_config.h"
-#include "rboot-ota.h"
 #include "uart.h"
 
 #include "max7219.h"
@@ -100,48 +99,6 @@ void ICACHE_FLASH_ATTR ShowInfo() {
 }
 */
 
-void ICACHE_FLASH_ATTR Switch() {
-	char msg[50];
-	uint8 before, after;
-	before = rboot_get_current_rom();
-	if (before == 0) after = 1; else after = 0;
-	os_sprintf(msg, "Swapping from rom %d to rom %d.\r\n", before, after);
-	uart0_send(msg);
-	rboot_set_current_rom(after);
-	uart0_send("Restarting...\r\n\r\n");
-	system_restart();
-}
-
-static void ICACHE_FLASH_ATTR OtaUpdate_CallBack(bool result, uint8 rom_slot) {
-
-	if(result == true) {
-		// success
-		if (rom_slot == FLASH_BY_ADDR) {
-			uart0_send("Write successful.\r\n");
-		} else {
-			// set to boot new rom and then reboot
-			char msg[40];
-			os_sprintf(msg, "Firmware updated, rebooting to rom %d...\r\n", rom_slot);
-			uart0_send(msg);
-			rboot_set_current_rom(rom_slot);
-			system_restart();
-		}
-	} else {
-		// fail
-		uart0_send("Firmware update failed!\r\n");
-	}
-}
-
-static void ICACHE_FLASH_ATTR OtaUpdate() {
-	
-	// start the upgrade process
-	if (rboot_ota_start((ota_callback)OtaUpdate_CallBack)) {
-		uart0_send("Updating...\r\n");
-	} else {
-		uart0_send("Updating failed!\r\n\r\n");
-	}
-}
-
 void ICACHE_FLASH_ATTR ProcessCommand(char* str) {
 	if (!strcmp(str, "help")) {
 		uart0_send("available commands\r\n");
@@ -149,8 +106,6 @@ void ICACHE_FLASH_ATTR ProcessCommand(char* str) {
 		uart0_send("  ip - show current ip address\r\n");
 		uart0_send("  connect - connect to wifi\r\n");
 		uart0_send("  restart - restart the esp8266\r\n");
-		uart0_send("  switch - switch to the other rom and reboot\r\n");
-		uart0_send("  ota - perform ota update, switch rom and reboot\r\n");
 		uart0_send("  info - show esp8266 info\r\n");
 		uart0_send("  time - get time from ds1307\r\n");
 		uart0_send("\r\n");
@@ -159,10 +114,6 @@ void ICACHE_FLASH_ATTR ProcessCommand(char* str) {
 	} else if (!strcmp(str, "restart")) {
 		uart0_send("Restarting...\r\n\r\n");
 		system_restart();
-	} else if (!strcmp(str, "switch")) {
-		Switch();
-	} else if (!strcmp(str, "ota")) {
-		OtaUpdate();
 	} else if (!strcmp(str, "ip")) {
 		ShowIP();
 	} else if (!strcmp(str, "info")) {
@@ -179,9 +130,6 @@ void ICACHE_FLASH_ATTR user_init(void) {
 	char msg[50];
 
 	uart_init(BIT_RATE_115200,BIT_RATE_115200);
-	uart0_send("\r\n\r\nrBoot Sample Project\r\n");
-	os_sprintf(msg, "\r\nCurrently running rom %d.\r\n", rboot_get_current_rom());
-	uart0_send(msg);
 
   gpio_init();
   max7219_init();
