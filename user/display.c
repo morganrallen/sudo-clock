@@ -159,11 +159,10 @@ void clear() {
 }
 
 uint32 last;
-uint32 accum = 0;
 
 void tick() {
   uint32 now;
-  now = system_get_time() + accum;
+  now = system_get_time();
   /*
   char msg[22];
   os_sprintf(msg, "%d - %d = %d mod %d div %d\n", now, last, now - last, ((now - last) % 100000), ((now - last) / 1000000));
@@ -177,8 +176,6 @@ void tick() {
   }
 
   display_time(epochish);
-
-  accum += ((now - last) % 100000);
 
   last = now;
 }
