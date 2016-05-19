@@ -37,7 +37,7 @@ void update_time() {
   os_memset(&ntp, 0, sizeof(ntp_t));
 	ntp.options = 0b00100011; // leap = 0, version = 4, mode = 3 (client)
 
-  espconn_sent(pUdpServer, (uint8*)&ntp, sizeof(ntp_t));
+  espconn_send(pUdpServer, (uint8*)&ntp, sizeof(ntp_t));
   uart0_send("updating time...\n");
 }
 
@@ -99,7 +99,7 @@ static void ICACHE_FLASH_ATTR network_udp_start(void)
   {
     espconn_regist_recvcb(pUdpServer, network_received);
     uart0_send("UDP OK\n\r");
-    espconn_sent(pUdpServer, (uint8*)&ntp, sizeof(ntp_t));
+    espconn_send(pUdpServer, (uint8*)&ntp, sizeof(ntp_t));
   }
 }
 
