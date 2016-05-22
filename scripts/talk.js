@@ -1,4 +1,3 @@
-var async = require("async");
 var dgram = require("dgram");
 var msg = process.argv.pop();
 
