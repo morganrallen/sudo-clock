@@ -21,14 +21,12 @@
 
 static os_timer_t network_timer;
 
-void ICACHE_FLASH_ATTR user_rf_pre_init() {
-}
-
 void ICACHE_FLASH_ATTR network_wait_for_ip() {
-
 	struct ip_info ipconfig;
+
 	os_timer_disarm(&network_timer);
 	wifi_get_ip_info(STATION_IF, &ipconfig);
+
 	if (wifi_station_get_connect_status() == STATION_GOT_IP && ipconfig.ip.addr != 0) {
 		char page_buffer[40];
 		os_sprintf(page_buffer,"ip: %d.%d.%d.%d\r\n",IP2STR(&ipconfig.ip));
@@ -44,7 +42,6 @@ void ICACHE_FLASH_ATTR network_wait_for_ip() {
 }
 
 void ICACHE_FLASH_ATTR wifi_config_station() {
-
 	struct station_config stationConf;
 
 	wifi_set_opmode(0x1);
@@ -125,18 +122,15 @@ void ICACHE_FLASH_ATTR ProcessCommand(char* str) {
 static os_timer_t update_time_timer;
 
 void ICACHE_FLASH_ATTR user_init(void) {
-
 	char msg[50];
 
 	uart_init(BIT_RATE_115200,BIT_RATE_115200);
 
   gpio_init();
   max7219_init();
-  //max7219_lightemup();
   uart0_send("max7219 init done\n");
 
   time_init();
-  //draw_string("HIJKLMNOPQRSTUVWXYZ");
 
   uart0_send("time init done\n\n");
 
