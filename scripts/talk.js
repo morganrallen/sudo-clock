@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 var dgram = require("dgram");
 var msg = process.argv.pop();
 
@@ -10,7 +12,6 @@ function pushMessage(e) {
   b.write(msg.slice(pos, pos + 8));
   b.write("\0", 8);
 
-  console.log(b);
   socket.send(b, 0, b.length, 1234, "100.64.64.206", function(e) {
     pos++;
 
