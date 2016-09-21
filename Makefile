@@ -144,7 +144,7 @@ $(APP_AR): $(OBJ)
 checkdirs: $(BUILD_DIR) $(FW_BASE)
 
 $(BUILD_DIR):
-	$(Q) mkdir -p $@
+	$(Q) mkdir -p $@/user
 
 $(FW_BASE):
 	$(Q) mkdir -p $@
